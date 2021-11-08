@@ -1,0 +1,44 @@
+version: '3'
+
+volumes:
+  pgdata: {}
+  master_pki: {}
+
+services:
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: salt
+      POSTGRES_PASSWORD: password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data/postgres/init:/docker-entrypoint-initdb.d
+
+  salt-master:
+    build:
+      context: .
+      dockerfile: ./images/Dockerfile.salt-master-ubuntu20.04
+    volumes:
+      - ./data/master/salt:/srv/salt
+      - ./data/master/pillar:/srv/pillar
+      - ./data/master/config:/etc/salt/master.d
+      - master_pki:/etc/salt/pki
+    hostname: salt-master
+
+  salt-minion-ubuntu20.04:
+    build:
+      context: .
+      dockerfile: ./images/Dockerfile.salt-minion-ubuntu20.04
+    depends_on:
+      - salt-master
+    volumes:
+      - ./data/minion/config:/etc/salt/minion.d
+
+  salt-minion-ubuntu18.04:
+    build:
+      context: .
+      dockerfile: ./images/Dockerfile.salt-minion-ubuntu18.04
+    depends_on:
+      - salt-master
+    volumes:
+      - ./data/minion/config:/etc/salt/minion.d

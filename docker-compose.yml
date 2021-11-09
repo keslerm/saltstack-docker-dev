@@ -7,6 +7,8 @@ volumes:
 services:
   db:
     image: postgres:13-alpine
+    profiles:
+      - database
     environment:
       POSTGRES_DB: salt
       POSTGRES_PASSWORD: password
@@ -25,19 +27,10 @@ services:
       - master_pki:/etc/salt/pki
     hostname: salt-master
 
-  salt-minion-ubuntu20.04:
+  salt-minion:
     build:
       context: .
       dockerfile: ./images/Dockerfile.salt-minion-ubuntu20.04
-    depends_on:
-      - salt-master
-    volumes:
-      - ./data/minion/config:/etc/salt/minion.d
-
-  salt-minion-ubuntu18.04:
-    build:
-      context: .
-      dockerfile: ./images/Dockerfile.salt-minion-ubuntu18.04
     depends_on:
       - salt-master
     volumes:
